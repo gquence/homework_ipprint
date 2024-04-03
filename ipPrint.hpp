@@ -4,6 +4,7 @@
 #include <list>
 #include <string>
 #include <iostream>
+#include <cstdint>
 #include <type_traits>
 
 namespace details {
@@ -20,50 +21,21 @@ namespace details {
     struct is_container<std::list<T, Alloc>>: std::true_type {};
 }
 
-void printIp(int8_t ip)
+template<typename T, typename = typename
+    std::enable_if_t<
+        std::is_integral<T>::value,
+        void
+    >
+>
+void printIp(T ip)
 {
-    std::cout << +static_cast<uint8_t>(ip) << std::endl;
-}
-
-void printIp(int16_t ip)
-{
-    union uIp {
-        uint16_t ip;
-        uint8_t  octets[2];
-    } innerIp;
-    innerIp.ip = ip;
-    std::cout << +innerIp.octets[1] << "."
-              << +innerIp.octets[0] << std::endl; 
-}
-
-void printIp(int32_t ip)
-{
-    union uIp {
-        uint32_t ip;
-        uint8_t  octets[4];
-    } innerIp;
-    innerIp.ip = ip;
-    std::cout << +innerIp.octets[3] << "." 
-              << +innerIp.octets[2] << "."
-              << +innerIp.octets[1] << "."
-              << +innerIp.octets[0] << std::endl; 
-}
-
-void printIp(int64_t ip)
-{
-    union uIp {
-        uint64_t ip;
-        uint8_t  octets[8];
-    } innerIp;
-    innerIp.ip = ip;
-    std::cout << +innerIp.octets[7] << "." 
-              << +innerIp.octets[6] << "."
-              << +innerIp.octets[5] << "."
-              << +innerIp.octets[4] << "."
-              << +innerIp.octets[3] << "."
-              << +innerIp.octets[2] << "."
-              << +innerIp.octets[1] << "."
-              << +innerIp.octets[0] << std::endl; 
+    uint8_t  octets[sizeof(T)];
+    *(T*)octets = ip; 
+    for (int i = sizeof(octets) - 1; i != 0; i--)
+    {
+        std::cout << +octets[i] << ".";
+    }
+    std::cout << +octets[0] << std::endl;  
 }
 
 void printIp(const std::string &ip) 
